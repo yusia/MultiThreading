@@ -26,16 +26,16 @@ namespace MultiThreading.Task4.Threads.Join
 
             Console.WriteLine();
 
-            StateUpdate(10);
+            WaitingWithJoin(10);
 
             Console.WriteLine("- b) ThreadPool class for this task and Semaphore for waiting threads.");
-            UpdateState(15);
+            WaitingWithSemaphore(15);
 
             Console.WriteLine();
             Console.ReadLine();
         }
 
-        static void StateUpdate(int state)
+        static void WaitingWithJoin(int state)
         {
             if (state == 0)
             {
@@ -48,20 +48,20 @@ namespace MultiThreading.Task4.Threads.Join
             });
             thread.Start();
             thread.Join();
-            StateUpdate(state);
+            WaitingWithJoin(state);
         }
 
-        static void UpdateState(int state)
+        static void WaitingWithSemaphore(int state)
         {
 
-            var semaphore = new SemaphoreSlim(0, 1);
+            var semaphore = new SemaphoreSlim(1, 1);
             if (state == 0)
             {
                 return;
             }
             ThreadPool.QueueUserWorkItem((obj) =>
             {
-                semaphore.Wait();
+                semaphore.Wait(100);
                 try
                 {
                     Interlocked.Decrement(ref state);
@@ -70,9 +70,9 @@ namespace MultiThreading.Task4.Threads.Join
                 finally
                 {
                     semaphore.Release();
+                    WaitingWithSemaphore(state);
                 }
             });
-            UpdateState(state);
         }
     }
 }
