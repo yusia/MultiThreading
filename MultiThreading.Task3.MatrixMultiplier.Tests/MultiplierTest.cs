@@ -1,7 +1,8 @@
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MultiThreading.Task3.MatrixMultiplier.Matrices;
 using MultiThreading.Task3.MatrixMultiplier.Multipliers;
+using System;
+using System.Diagnostics;
 
 namespace MultiThreading.Task3.MatrixMultiplier.Tests
 {
@@ -15,14 +16,40 @@ namespace MultiThreading.Task3.MatrixMultiplier.Tests
             TestMatrix3On3(new MatricesMultiplierParallel());
         }
 
-        [TestMethod]
-        public void ParallelEfficiencyTest()
+
+        [DataTestMethod]
+        [DataRow(10, true, "Simple multiplication more efficient")]
+        [DataRow(25, true, "Regular multiplication more efficient")]
+        [DataRow(50, false, "Parallel multiplication more effective")]
+        public void ParallelEfficiencyTest(int size, bool expected, string message)
         {
-            // todo: implement a test method to check the size of the matrix which makes parallel multiplication more effective than
-            // todo: the regular one
+            long result = createAndGetMultiplicationTime(new MatricesMultiplier(), size);
+            long resultParallel = createAndGetMultiplicationTime(new MatricesMultiplierParallel(), size);
+
+            Assert.AreEqual(resultParallel - result > 0, expected, message);
         }
 
         #region private methods
+        long createAndGetMultiplicationTime(IMatricesMultiplier matrixMultiplier, int size)
+        {
+            if (matrixMultiplier == null)
+            {
+                throw new ArgumentNullException(nameof(matrixMultiplier));
+            }
+
+            var m1 = new Matrix(size, size);
+            var m2 = new Matrix(size, size);
+
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            _ = matrixMultiplier.Multiply(m1, m2);
+
+            stopwatch.Stop();
+            var result = stopwatch.ElapsedTicks;
+
+            return result;
+        }
 
         void TestMatrix3On3(IMatricesMultiplier matrixMultiplier)
         {
